@@ -79,7 +79,7 @@ jobs:
           . venv/bin/activate
           pip install --upgrade pip
           pip install -r ./automated-tests/pytests/requirements.txt
-          
+          pip install pytest pytest-html pytest-metadata pytest-playwright         
           playwright install
           playwright install-deps
 
