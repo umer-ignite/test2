@@ -78,7 +78,8 @@ jobs:
           python3.10 -m venv venv
           . venv/bin/activate
           pip install --upgrade pip
-          pip install pytest pytest-html pytest-metadata playwright pytest-playwright
+          pip install -r ./automated-tests/pytests/requirements.txt
+          
           playwright install
           playwright install-deps
 
