@@ -1,5 +1,4 @@
 name: Deploy to Amazon ECS Cluster on Staging
-
 on:
   push:
     branches:
@@ -13,7 +12,6 @@ jobs:
       image: ubuntu:24.04
       volumes:
         - ${{ github.workspace }}:/app
-        - /reports:/app/reports
       options: --user root
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -34,9 +32,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create reports directory
+        working-directory: /app
         run: |
-          mkdir -p /reports
-          chmod 777 /reports
+          mkdir -p reports
+          chmod 777 reports
 
       - name: Setup Python Environment
         working-directory: /app
@@ -63,14 +62,14 @@ jobs:
         working-directory: /app
         run: |
           . venv/bin/activate
-          pytest ./automated-tests/pytests --maxfail=5 --disable-warnings --tb=short --html=/reports/report.html --self-contained-html
+          pytest ./automated-tests/pytests --maxfail=5 --disable-warnings --tb=short --html=reports/report.html --self-contained-html
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
-          path: /reports/
+          path: /app/reports/
 
       - name: Check Test Status
         if: failure()
