@@ -1,0 +1,100 @@
+name: Python Tests Workflow
+on:
+  workflow_call:
+    inputs:
+      ENVIRONMENT:
+        required: true
+        type: string
+      STAGING_API_URL:
+        required: true
+        type: string
+      STAGING_FRONTEND_URL:
+        required: true
+        type: string
+      STAGING_WEBSOCKET_URL:
+        required: true
+        type: string
+      STAGING_RTC_URL:
+        required: true
+        type: string
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      JIVE_ADDON_CLIENT_ID:
+        required: true
+      JIVE_ADDON_CLIENT_SECRET:
+        required: true
+      ENCRYPTION_ALGORITHM_SECRET_KEY:
+        required: true
+
+jobs:
+  run_pytest:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:24.04
+      volumes:
+        - ${{ github.workspace }}:/app
+      options: --user root
+      env:
+        DEBIAN_FRONTEND: noninteractive
+        # Environment URLs
+        STAGING_API_URL: ${{ inputs.STAGING_API_URL }}
+        STAGING_FRONTEND_URL: ${{ inputs.STAGING_FRONTEND_URL }}
+        STAGING_WEBSOCKET_URL: ${{ inputs.STAGING_WEBSOCKET_URL }}
+        STAGING_RTC_URL: ${{ inputs.STAGING_RTC_URL }}
+        # Secrets
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        JIVE_ADDON_CLIENT_ID: ${{ secrets.JIVE_ADDON_CLIENT_ID }}
+        JIVE_ADDON_CLIENT_SECRET: ${{ secrets.JIVE_ADDON_CLIENT_SECRET }}
+        ENCRYPTION_ALGORITHM_SECRET_KEY: ${{ secrets.ENCRYPTION_ALGORITHM_SECRET_KEY }}
+       
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create reports directory
+        working-directory: /app
+        run: |
+          mkdir -p reports
+          chmod 777 reports
+
+      - name: Setup Python Environment
+        working-directory: /app
+        run: |
+          apt-get update
+          apt-get install -y software-properties-common
+          add-apt-repository ppa:deadsnakes/ppa
+          apt-get update
+          apt-get install -y python3.10 python3.10-dev python3.10-venv python3-pip git tzdata unzip wget curl
+          python3.10 --version
+          python3.10 -m pip --version
+
+      - name: Setup Test Environment
+        working-directory: /app
+        run: |
+          python3.10 -m venv venv
+          . venv/bin/activate
+          pip install --upgrade pip
+          pip install pytest pytest-html pytest-metadata playwright pytest-playwright
+          playwright install
+          playwright install-deps
+
+      - name: Run Tests
+        working-directory: /app
+        run: |
+          . venv/bin/activate
+          pytest ./automated-tests/pytests --maxfail=5 --disable-warnings --tb=short --html=reports/report.html --self-contained-html
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: /app/reports/
+
+      - name: Check Test Status
+        if: failure()
+        run: exit 1
