@@ -8,7 +8,7 @@ env:
   ENVIRONMENT: staging
 jobs:
   run_pytest:
-    runs-on: mypersonas
+    runs-on: ubuntu-latest
     container:
       image: ubuntu:24.04
       volumes:
