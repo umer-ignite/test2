@@ -1,0 +1,77 @@
+name: Deploy to Amazon ECS Cluster on Staging
+
+on:
+  push:
+    branches:
+      - main
+env:
+  ENVIRONMENT: staging
+jobs:
+  run_pytest:
+    runs-on: mypersonas
+    container:
+      image: ubuntu:24.04
+      volumes:
+        - ${{ github.workspace }}:/app
+        - /reports:/app/reports
+      options: --user root
+      env:
+        DEBIAN_FRONTEND: noninteractive
+        # Staging environment URLs
+        STAGING_API_URL: https://api.staging.mypersonas.ai
+        STAGING_FRONTEND_URL: https://manage.staging.mypersonas.ai
+        STAGING_WEBSOCKET_URL: wss://websocket-chat.staging.mypersonas.ai
+        STAGING_RTC_URL: https://rtc.staging.mypersonas.ai
+        # Secrets
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        JIVE_ADDON_CLIENT_ID: ${{ secrets.JIVE_ADDON_CLIENT_ID }}
+        JIVE_ADDON_CLIENT_SECRET: ${{ secrets.JIVE_ADDON_CLIENT_SECRET }}
+        ENCRYPTION_ALGORITHM_SECRET_KEY: ${{ secrets.ENCRYPTION_ALGORITHM_SECRET_KEY }}
+       
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create reports directory
+        run: |
+          mkdir -p /reports
+          chmod 777 /reports
+
+      - name: Setup Python Environment
+        working-directory: /app
+        run: |
+          apt-get update
+          apt-get install -y software-properties-common
+          add-apt-repository ppa:deadsnakes/ppa
+          apt-get update
+          apt-get install -y python3.10 python3.10-dev python3.10-venv python3-pip git tzdata unzip wget curl
+          python3.10 --version
+          python3.10 -m pip --version
+
+      - name: Setup Test Environment
+        working-directory: /app
+        run: |
+          python3.10 -m venv venv
+          . venv/bin/activate
+          pip install --upgrade pip
+          pip install pytest pytest-html pytest-metadata playwright pytest-playwright
+          playwright install
+          playwright install-deps
+
+      - name: Run Tests
+        working-directory: /app
+        run: |
+          . venv/bin/activate
+          pytest ./automated-tests/pytests --maxfail=5 --disable-warnings --tb=short --html=/reports/report.html --self-contained-html
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: /reports/
+
+      - name: Check Test Status
+        if: failure()
+        run: exit 1
