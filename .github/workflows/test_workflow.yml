@@ -10,7 +10,7 @@ jobs:
   tests:
     uses: ./.github/workflows/pytest_workflow.yml
     with:
-      ENVIRONMENT: ${{ env.ENVIRONMENT }}
+      ENVIRONMENT: staging
       STAGING_API_URL: https://api.staging.mypersonas.ai
       STAGING_FRONTEND_URL: https://manage.staging.mypersonas.ai
       STAGING_WEBSOCKET_URL: wss://websocket-chat.staging.mypersonas.ai
