@@ -83,6 +83,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          pip install --upgrade pip
           pip install pytest pytest-md pytest-emoji
           pip install -r ./automated-tests/pytests/requirements.txt
 
