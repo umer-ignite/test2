@@ -1,0 +1,37 @@
+name: Run Python tests
+
+on: [push]
+
+jobs:
+  build:
+    name: Run tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8"]
+
+    steps:
+      - uses: szenius/set-timezone@ce9c440bc3af4f51b28d7ef7e5c47ee8f26c8dcb
+        with:
+          timezoneLinux: "Europe/Berlin"
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: pip install pytest pytest-md pytest-emoji
+      # first checkout and then use the action because dependabot crashes when it sees private repositories
+      - name: Checkout quantco/pytest-action
+        uses: actions/checkout@v3
+        with:
+          repository: quantco/pytest-action
+          ref: v2
+#          token: ${{ secrets.FQ_GH_TOKEN }}
+          path: .github/pytest-action
+      - name: Run unittests
+        uses: ./.github/pytest-action
+        with:
+          emoji: false
+          verbose: false
+          job-summary: true
