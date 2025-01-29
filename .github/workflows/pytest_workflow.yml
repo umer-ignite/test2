@@ -105,7 +105,7 @@ jobs:
 
       # Changed: Replaced pytest command with pytest-action
       - name: Run Tests
-      - uses: pavelzw/pytest-action@v2
+        uses: pavelzw/pytest-action@v2
         with:
           emoji: false
           verbose: false
