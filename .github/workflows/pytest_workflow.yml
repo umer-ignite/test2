@@ -40,6 +40,9 @@ on:
 jobs:
   run_pytest:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8"] 
     container:
       image: ubuntu:24.04
       volumes:
@@ -64,16 +67,19 @@ jobs:
         PYT_API_ADMIN_PASSWORD: ${{ secrets.PYT_API_ADMIN_PASSWORD }}
 
     steps:
-      - uses: szenius/set-timezone@v1.2
-        with:
-          timezoneLinux: "Europe/Berlin"
-      - uses: actions/checkout@v3
+      # - uses: szenius/set-timezone@v1.2
+      #   with:
+      #     timezoneLinux: "Europe/Berlin"
+      - uses: actions/checkout@v4
+      
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Install dependencies
         run: pip install pytest pytest-md pytest-emoji
+
       - uses: pavelzw/pytest-action@v2
         with:
           emoji: false
