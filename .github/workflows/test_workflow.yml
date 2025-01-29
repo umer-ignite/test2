@@ -12,7 +12,7 @@ jobs:
     env:
       ENV_NAME: ${{ env.ENVIRONMENT }}    
     with:
-      ENVIRONMENT: ${{ env.ENV_NAME }}
+      ENVIRONMENT: test
       STAGING_API_URL: https://api.staging.mypersonas.ai
       STAGING_FRONTEND_URL: https://manage.staging.mypersonas.ai
       STAGING_WEBSOCKET_URL: wss://websocket-chat.staging.mypersonas.ai
