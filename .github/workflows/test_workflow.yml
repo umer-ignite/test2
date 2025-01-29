@@ -9,8 +9,6 @@ env:
 jobs:
   tests:
     uses: ./.github/workflows/pytest_workflow.yml
-    env:
-      ENV_NAME: ${{ env.ENVIRONMENT }}    
     with:
       ENVIRONMENT: test
       STAGING_API_URL: https://api.staging.mypersonas.ai
