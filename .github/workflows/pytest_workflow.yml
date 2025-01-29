@@ -62,63 +62,80 @@ jobs:
         PYT_ADMIN_PASSWORD: ${{ secrets.PYT_ADMIN_PASSWORD }}
         PYT_API_OWNER_PASSWORD: ${{ secrets.PYT_API_OWNER_PASSWORD }}
         PYT_API_ADMIN_PASSWORD: ${{ secrets.PYT_API_ADMIN_PASSWORD }}
-       
+
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Create reports directory
-        working-directory: /app
-        run: |
-          mkdir -p reports
-          chmod 777 reports
-
-      - name: Setup Python Environment
-        working-directory: /app
-        run: |
-          apt-get update
-          apt-get install -y software-properties-common
-          add-apt-repository ppa:deadsnakes/ppa
-          apt-get update
-          apt-get install -y python3.10 python3.10-dev python3.10-venv python3-pip git tzdata unzip wget curl
-          python3.10 --version
-          python3.10 -m pip --version
-
-      - name: Setup Test Environment
-        working-directory: /app
-        run: |
-          python3.10 -m venv venv
-          . venv/bin/activate
-          pip install --upgrade pip
-          pip install -r ./automated-tests/pytests/requirements.txt
-          pip install pytest pytest-html pytest-metadata pytest-playwright         
-          playwright install
-          playwright install-deps
-
-      # Added: Install pytest-action prerequisites
-      - name: Install pytest-action prerequisites
-        working-directory: /app
-        run: |
-          . venv/bin/activate
-          pip install pytest-cov pytest-xdist
-          pip install pytest pytest-md pytest-emoji
-
-      # Changed: Replaced pytest command with pytest-action
-      - name: Run Tests
-        uses: pavelzw/pytest-action@v2
+      - uses: szenius/set-timezone@v1.2
+        with:
+          timezoneLinux: "Europe/Berlin"
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: pip install pytest pytest-md pytest-emoji
+      - uses: pavelzw/pytest-action@v2
         with:
           emoji: false
           verbose: false
-          job-summary: true      
-          custom-arguments: './automated-tests/pytests --maxfail=5'
+          job-summary: true  
           
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: /app/reports/
+    # steps:
+    #   - name: Checkout Repository
+    #     uses: actions/checkout@v4
 
-      - name: Check Test Status
-        if: failure()
-        run: exit 1
+    #   - name: Create reports directory
+    #     working-directory: /app
+    #     run: |
+    #       mkdir -p reports
+    #       chmod 777 reports
+
+    #   - name: Setup Python Environment
+    #     working-directory: /app
+    #     run: |
+    #       apt-get update
+    #       apt-get install -y software-properties-common
+    #       add-apt-repository ppa:deadsnakes/ppa
+    #       apt-get update
+    #       apt-get install -y python3.10 python3.10-dev python3.10-venv python3-pip git tzdata unzip wget curl
+    #       python3.10 --version
+    #       python3.10 -m pip --version
+
+    #   - name: Setup Test Environment
+    #     working-directory: /app
+    #     run: |
+    #       python3.10 -m venv venv
+    #       . venv/bin/activate
+    #       pip install --upgrade pip
+    #       pip install -r ./automated-tests/pytests/requirements.txt
+    #       pip install pytest pytest-html pytest-metadata pytest-playwright         
+    #       playwright install
+    #       playwright install-deps
+
+    #   # Added: Install pytest-action prerequisites
+    #   - name: Install pytest-action prerequisites
+    #     working-directory: /app
+    #     run: |
+    #       . venv/bin/activate
+    #       pip install pytest-cov pytest-xdist
+    #       pip install pytest pytest-md pytest-emoji
+
+    #   # Changed: Replaced pytest command with pytest-action
+    #   - name: Run Tests
+    #     uses: pavelzw/pytest-action@v2
+    #     with:
+    #       emoji: false
+    #       verbose: false
+    #       job-summary: true      
+    #       custom-arguments: './automated-tests/pytests --maxfail=5'
+          
+    #   - name: Upload Test Results
+    #     uses: actions/upload-artifact@v4
+    #     if: always()
+    #     with:
+    #       name: test-results
+    #       path: /app/reports/
+
+    #   - name: Check Test Status
+    #     if: failure()
+    #     run: exit 1
