@@ -76,10 +76,21 @@ jobs:
           mkdir -p reports
           chmod 777 reports
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
+      - name: Setup Python Environment
+        working-directory: /app
+        run: |
+          apt-get update
+          apt-get install -y software-properties-common
+          add-apt-repository ppa:deadsnakes/ppa
+          apt-get update
+          apt-get install -y python3.10 python3.10-dev python3.10-venv python3-pip git tzdata unzip wget curl
+          python3.10 --version
+          python3.10 -m pip --version
+
+      # - name: Set up Python ${{ matrix.python-version }}
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
