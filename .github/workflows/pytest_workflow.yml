@@ -67,25 +67,87 @@ jobs:
         PYT_API_ADMIN_PASSWORD: ${{ secrets.PYT_API_ADMIN_PASSWORD }}
 
     steps:
-      # - uses: szenius/set-timezone@v1.2
-      #   with:
-      #     timezoneLinux: "Europe/Berlin"
-      - uses: actions/checkout@v4
-      
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create reports directory
+        working-directory: /app
+        run: |
+          mkdir -p reports
+          chmod 777 reports
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: pip install pytest pytest-md pytest-emoji
+        run: |
+          pip install pytest pytest-md pytest-emoji
+          pip install -r ./automated-tests/pytests/requirements.txt
 
-      - uses: pavelzw/pytest-action@v2
+      # - name: Setup Test Environment
+      #   working-directory: /app
+      #   run: |
+      #     python3.10 -m venv venv
+      #     # . venv/bin/activate
+      #     # pip install --upgrade pip
+      #     pip install -r ./automated-tests/pytests/requirements.txt
+      #     # pip install pytest pytest-html pytest-metadata pytest-playwright         
+      #     # playwright install
+      #     # playwright install-deps
+
+      # # Added: Install pytest-action prerequisites
+      # - name: Install pytest-action prerequisites
+      #   working-directory: /app
+      #   run: |
+      #     . venv/bin/activate
+      #     pip install pytest-cov pytest-xdist
+      #     pip install pytest pytest-md pytest-emoji
+
+      # Changed: Replaced pytest command with pytest-action
+      # - name: Run Tests
+      #   uses: pavelzw/pytest-action@v2
+      #   with:
+      #     emoji: false
+      #     verbose: false
+      #     job-summary: true      
+      #     custom-arguments: './automated-tests/pytests --maxfail=5'
+      - name: Run Tests
+        uses: pavelzw/pytest-action@v2
         with:
           custom-arguments: './automated-tests/pytests --maxfail=5'
           emoji: true
           verbose: true
-          job-summary: true  
+          job-summary: true            
+          
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: /app/reports/
+
+      - name: Check Test Status
+        if: failure()
+        run: exit 1
+# previous
+      # - uses: actions/checkout@v4
+      
+      # - name: Set up Python ${{ matrix.python-version }}
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: ${{ matrix.python-version }}
+
+      # - name: Install dependencies
+      #   run: pip install pytest pytest-md pytest-emoji
+
+      # - uses: pavelzw/pytest-action@v2
+      #   with:
+      #     custom-arguments: './automated-tests/pytests --maxfail=5'
+      #     emoji: true
+      #     verbose: true
+      #     job-summary: true  
           
     # steps:
     #   - name: Checkout Repository
