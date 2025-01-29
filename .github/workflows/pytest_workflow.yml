@@ -103,7 +103,7 @@ jobs:
       - name: Run Tests
         uses: pavelzw/pytest-action@v2
         with:
-          custom-arguments: './automated-tests/pytests --maxfail=5'
+          custom-arguments: './automated-tests/pytests --maxfail=5 --html=reports/report.html --self-contained-html'
           emoji: true
           verbose: true
           job-summary: true            
