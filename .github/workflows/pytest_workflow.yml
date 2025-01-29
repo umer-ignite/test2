@@ -98,6 +98,8 @@ jobs:
           playwright install
           playwright install-deps
           pip install pytest pytest-md pytest-emoji
+          echo "$PWD/venv/bin" >> $GITHUB_PATH
+          
       - name: Run Tests
         uses: pavelzw/pytest-action@v2
         with:
