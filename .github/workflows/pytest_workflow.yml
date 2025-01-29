@@ -95,12 +95,31 @@ jobs:
           playwright install
           playwright install-deps
 
-      - name: Run Tests
+      # Added: Install pytest-action prerequisites
+      - name: Install pytest-action prerequisites
         working-directory: /app
         run: |
           . venv/bin/activate
-          pytest ./automated-tests/pytests --maxfail=5 --disable-warnings --tb=short --html=reports/report.html --self-contained-html
+          pip install pytest-cov pytest-xdist
+          pip install pytest pytest-md pytest-emoji
 
+      # Changed: Replaced pytest command with pytest-action
+      - name: Run Tests
+        uses: quantco/pytest-action@v2
+        with:
+          working-directory: /app
+          venv: /app/venv
+          custom-arguments: >-
+            ./automated-tests/pytests
+            --maxfail=5
+            --disable-warnings
+            --tb=short
+            --html=reports/report.html
+            --self-contained-html
+          emoji: false
+          verbose: false
+          job-summary: true
+          
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()
